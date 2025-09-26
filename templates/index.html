@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PoreSight</title>
+</head>
+<body>
+    <h1>PoreSight</h1>
+    <form id="upload-form" action="/predict" method="post" enctype="multipart/form-data">
+        <label for="file">Upload Gambar:</label>
+        <input type="file" id="file" name="file" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <div id="result" style="display:none;">
+        <h2>Hasil Deteksi:</h2>
+        <img id="result-image" src="" alt="Hasil akan ditampilkan di sini" style="max-width: 100%; border: 1px solid #ddd; margin-top: 10px;">
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        const form = document.querySelector('#upload-form');
+        const resultDiv = document.getElementById('result');
+        const resultImg = document.getElementById('result-image');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            messageDiv.textContent = 'Proses deteksi sedang berlangsung...';
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultImg.src = `/results/${data.result_image}`;
+                    resultDiv.style.display = 'block';
+                    messageDiv.textContent = 'Deteksi selesai! Hasil ditampilkan di atas.';
+                } else {
+                    const errorData = await response.json();
+                    messageDiv.textContent = errorData.error || 'Terjadi kesalahan saat mendeteksi objek.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                messageDiv.textContent = 'Terjadi kesalahan saat menghubungi server.';
+            }
+        });
+    </script>
+</body>
+</html>
